@@ -1,0 +1,126 @@
+python-filelock (3.3.2-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Remove bundled tests.
+  * Set Rules-Requires-Root.
+  * Bump Standards-Version.
+  * Use debhelper-compat 13.
+
+ -- Sascha Steinbiss <satta@debian.org>  Sat, 30 Oct 2021 10:09:24 +0200
+
+python-filelock (3.0.12-2) unstable; urgency=medium
+
+  * Convert to Python3.
+  * Drop Python2 package.
+  * Bump Standards-Version.
+  * Use debhelper 12.
+
+ -- Sascha Steinbiss <satta@debian.org>  Thu, 05 Sep 2019 06:06:07 +0200
+
+python-filelock (3.0.12-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Mon, 08 Jul 2019 17:23:29 +0200
+
+python-filelock (3.0.10-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Bump Standards-Version.
+
+ -- Sascha Steinbiss <satta@debian.org>  Mon, 12 Nov 2018 17:52:44 +0100
+
+python-filelock (3.0.9-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Sun, 14 Oct 2018 08:40:43 +0000
+
+python-filelock (3.0.8-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Fri, 14 Sep 2018 14:05:14 +0200
+
+python-filelock (3.0.6-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Use debhelper 11.
+  * Use Salsa Vcs-* entries.
+  * Bump Standards-Version.
+  * Remove obsolete Python version hints.
+
+ -- Sascha Steinbiss <satta@debian.org>  Tue, 28 Aug 2018 01:41:06 +0200
+
+python-filelock (3.0.4-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Make debhelper test target respect nocheck flag.
+
+ -- Sascha Steinbiss <satta@debian.org>  Wed, 07 Feb 2018 17:59:06 +0100
+
+python-filelock (3.0.3-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Drop patch applied by upstream.
+
+ -- Sascha Steinbiss <satta@debian.org>  Wed, 31 Jan 2018 14:20:08 +0100
+
+python-filelock (3.0.0-2) unstable; urgency=medium
+
+  * Fix FTBFS by addressing race condition after consulting upstream.
+    Closes: #887869
+  * Bump Standards-Version.
+  * Add autopkgtest.
+
+ -- Sascha Steinbiss <satta@debian.org>  Tue, 23 Jan 2018 10:26:03 +0100
+
+python-filelock (3.0.0-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Wed, 17 Jan 2018 14:25:46 +0100
+
+python-filelock (2.0.13-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Bump Standards-Version.
+
+ -- Sascha Steinbiss <satta@debian.org>  Tue, 14 Nov 2017 12:03:17 +0100
+
+python-filelock (2.0.12-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Mon, 04 Sep 2017 15:07:59 +0200
+
+python-filelock (2.0.11-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Bump Standards-Version.
+
+ -- Sascha Steinbiss <satta@debian.org>  Thu, 20 Jul 2017 14:51:35 +0200
+
+python-filelock (2.0.10-2) unstable; urgency=medium
+
+  * Upload to unstable.
+
+ -- Sascha Steinbiss <satta@debian.org>  Sun, 18 Jun 2017 11:02:54 +0000
+
+python-filelock (2.0.10-1) experimental; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Wed, 14 Jun 2017 14:40:42 +0200
+
+python-filelock (2.0.8-1) experimental; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Sat, 22 Apr 2017 22:00:10 +0000
+
+python-filelock (2.0.7-1) unstable; urgency=medium
+
+  * Initial release. (Closes: #848175)
+
+ -- Sascha Steinbiss <satta@debian.org>  Wed, 14 Dec 2016 20:42:19 +0000

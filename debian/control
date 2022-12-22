@@ -1,0 +1,24 @@
+Source: python-filelock
+Section: python
+Priority: optional
+Maintainer: Sascha Steinbiss <satta@debian.org>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-setuptools
+Testsuite: autopkgtest-pkg-python
+Standards-Version: 4.5.1
+Rules-Requires-Root: no
+Vcs-Git: https://salsa.debian.org/debian/python-filelock.git
+Vcs-Browser: https://salsa.debian.org/debian/python-filelock
+Homepage: https://github.com/benediktschmitt/py-filelock
+
+Package: python3-filelock
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends}
+Description: platform independent file locking module
+ This package contains a single module, which implements a platform independent
+ file locking mechanism for Python. The lock includes a lock counter and is
+ thread safe. This means, when locking the same lock object twice, it will not
+ block.
