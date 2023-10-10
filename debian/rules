@@ -1,7 +1,5 @@
 #!/usr/bin/make -f
 
-build3vers := $(shell py3versions -sv)
-
 export PYBUILD_NAME = filelock
 
 %:
