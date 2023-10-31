@@ -1,3 +1,97 @@
+python-filelock (3.12.4-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Wed, 20 Sep 2023 08:30:47 +0200
+
+python-filelock (3.12.3-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Tue, 12 Sep 2023 13:53:28 +0200
+
+python-filelock (3.12.2-1) unstable; urgency=medium
+
+  [ Stefano Rivera ]
+  * New upstream release.
+  * Build-Depend on python3-pytest-mock.
+  * Clean correctly.
+  * Remove unnecessary residue in debian/rules.
+
+  [ Sascha Steinbiss ]
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Thu, 15 Jun 2023 07:31:33 +0200
+
+python-filelock (3.9.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Bump d/copyright date for debian directory.
+  * Switch build system to hatchling, following upstream.
+  * Update project homepage.
+
+ -- Sascha Steinbiss <satta@debian.org>  Mon, 02 Jan 2023 12:17:19 +0100
+
+python-filelock (3.8.2-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Sun, 11 Dec 2022 13:34:43 +0100
+
+python-filelock (3.8.0-2) unstable; urgency=medium
+
+  * Make test suite work by enabling pytest.
+
+ -- Sascha Steinbiss <satta@debian.org>  Tue, 30 Aug 2022 14:13:03 +0200
+
+python-filelock (3.8.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Bump Standards-Version.
+  * Add upstream metadata.
+  * Update d/copyright dates.
+
+ -- Sascha Steinbiss <satta@debian.org>  Tue, 30 Aug 2022 13:45:03 +0200
+
+python-filelock (3.7.1-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Wed, 15 Jun 2022 14:26:39 +0200
+
+python-filelock (3.7.0-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Sat, 14 May 2022 06:25:13 +0200
+
+python-filelock (3.6.0-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Sat, 19 Feb 2022 20:03:12 +0100
+
+python-filelock (3.4.2-2) unstable; urgency=medium
+
+  * Ensure version is set correctly in setup.cfg.
+    (Closes: #1004998)
+
+ -- Sascha Steinbiss <satta@debian.org>  Mon, 07 Feb 2022 12:07:31 +0100
+
+python-filelock (3.4.2-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Bump Python version requirement to 3.7+.
+  * Disable overwriting of version.py by setuptools.
+
+ -- Sascha Steinbiss <satta@debian.org>  Mon, 10 Jan 2022 11:09:11 +0100
+
+python-filelock (3.4.0-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Fri, 19 Nov 2021 22:54:21 +0100
+
 python-filelock (3.3.2-1) unstable; urgency=medium
 
   * New upstream release.
