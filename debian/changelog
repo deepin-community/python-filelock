@@ -1,3 +1,9 @@
+python-filelock (3.12.4-1deepin2) unstable; urgency=medium
+
+  * Fix CVE-2026-22701: TOCTOU symlink vulnerability in SoftFileLock.
+
+ -- deepin-ci-robot <packages@deepin.org>  Thu, 07 May 2026 19:16:10 +0800
+
 python-filelock (3.12.4-1deepin1) unstable; urgency=medium
 
   * Fix CVE-2025-68146: TOCTOU symlink vulnerability in UnixFileLock and
