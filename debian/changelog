@@ -1,15 +1,83 @@
-python-filelock (3.12.4-1deepin2) unstable; urgency=medium
+python-filelock (3.18.0-1+deb13u1) trixie; urgency=medium
 
-  * Fix CVE-2026-22701: TOCTOU symlink vulnerability in SoftFileLock.
+  * Add patch: cve-2025-68146.patch
+    This addresses CVE-2025-68146 by including the patch from upstream.
+    (commit e84510eac948b5b6027b24025f421a650cbd9749)
+    Closes: #1123510
 
- -- deepin-ci-robot <packages@deepin.org>  Thu, 07 May 2026 19:16:10 +0800
+ -- Sascha Steinbiss <satta@debian.org>  Wed, 07 Jan 2026 14:16:28 +0100
 
-python-filelock (3.12.4-1deepin1) unstable; urgency=medium
+python-filelock (3.18.0-1) unstable; urgency=medium
 
-  * Fix CVE-2025-68146: TOCTOU symlink vulnerability in UnixFileLock and
-    WindowsFileLock.
+  * New upstream release.
 
- -- deepin-ci-robot <packages@deepin.org>  Thu, 07 May 2026 19:15:31 +0800
+ -- Sascha Steinbiss <satta@debian.org>  Sat, 22 Mar 2025 00:19:37 +0100
+
+python-filelock (3.17.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Update homepage.
+  * Update Repository metadata.
+  * Bump copyright date for debian/ directory.
+
+ -- Sascha Steinbiss <satta@debian.org>  Wed, 19 Feb 2025 14:07:09 +0100
+
+python-filelock (3.16.1-2) unstable; urgency=medium
+
+  * Packaging update
+  * Reorder sequence of d/control fields by cme (routine-update)
+  * Add salsa-ci file (routine-update)
+  * Set upstream metadata fields: Bug-Database, Bug-Submit, Repository-Browse.
+
+ -- Sascha Steinbiss <satta@debian.org>  Sat, 15 Feb 2025 18:36:03 +0100
+
+python-filelock (3.16.1-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Wed, 09 Oct 2024 18:44:50 +0200
+
+python-filelock (3.15.4-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Add build-dependency on python3-virtualenv.
+
+ -- Sascha Steinbiss <satta@debian.org>  Fri, 28 Jun 2024 00:39:57 +0200
+
+python-filelock (3.15.1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Add build dependency on python3-pytest-asyncio.
+
+ -- Sascha Steinbiss <satta@debian.org>  Tue, 18 Jun 2024 10:14:14 +0200
+
+python-filelock (3.14.0-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Thu, 02 May 2024 22:59:01 +0200
+
+python-filelock (3.13.4-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Sascha Steinbiss <satta@debian.org>  Sat, 20 Apr 2024 09:52:04 +0200
+
+python-filelock (3.13.3-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Bump versioned dependency declarations in d/control.
+  * Bump Standards-Version.
+  * Bump copyright date for debian/ directory.
+
+ -- Sascha Steinbiss <satta@debian.org>  Sun, 31 Mar 2024 20:40:09 +0200
+
+python-filelock (3.13.1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Add build dependency on python3-pytest-timeout.
+
+ -- Sascha Steinbiss <satta@debian.org>  Mon, 20 Nov 2023 11:27:59 +0100
 
 python-filelock (3.12.4-1) unstable; urgency=medium
 

@@ -4,6 +4,7 @@ import os
 import sys
 from contextlib import suppress
 from errno import ENOSYS
+from pathlib import Path
 from typing import cast
 
 from ._api import BaseFileLock
@@ -25,7 +26,9 @@ if sys.platform == "win32":  # pragma: win32 cover
 else:  # pragma: win32 no cover
     try:
         import fcntl
-    except ImportError:
+
+        _ = (fcntl.flock, fcntl.LOCK_EX, fcntl.LOCK_NB, fcntl.LOCK_UN)
+    except (ImportError, AttributeError):
         pass
     else:
         has_fcntl = True
@@ -35,7 +38,9 @@ else:  # pragma: win32 no cover
 
         def _acquire(self) -> None:
             ensure_directory_exists(self.lock_file)
-            open_flags = os.O_RDWR | os.O_CREAT | os.O_TRUNC
+            open_flags = os.O_RDWR | os.O_TRUNC
+            if not Path(self.lock_file).exists():
+                open_flags |= os.O_CREAT
             fd = os.open(self.lock_file, open_flags, self._context.mode)
             with suppress(PermissionError):  # This locked is not owned by this UID
                 os.fchmod(fd, self._context.mode)
@@ -44,7 +49,7 @@ else:  # pragma: win32 no cover
             except OSError as exception:
                 os.close(fd)
                 if exception.errno == ENOSYS:  # NotImplemented error
-                    msg = "FileSystem does not appear to support flock; user SoftFileLock instead"
+                    msg = "FileSystem does not appear to support flock; use SoftFileLock instead"
                     raise NotImplementedError(msg) from exception
             else:
                 self._context.lock_file_fd = fd
@@ -53,13 +58,13 @@ else:  # pragma: win32 no cover
             # Do not remove the lockfile:
             #   https://github.com/tox-dev/py-filelock/issues/31
             #   https://stackoverflow.com/questions/17708885/flock-removing-locked-file-without-race-condition
-            fd = cast(int, self._context.lock_file_fd)
+            fd = cast("int", self._context.lock_file_fd)
             self._context.lock_file_fd = None
             fcntl.flock(fd, fcntl.LOCK_UN)
             os.close(fd)
 
 
 __all__ = [
-    "has_fcntl",
     "UnixFileLock",
+    "has_fcntl",
 ]
