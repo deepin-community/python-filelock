@@ -12,14 +12,17 @@ from inspect import getframeinfo, stack
 from pathlib import Path, PurePath
 from stat import S_IWGRP, S_IWOTH, S_IWUSR, filemode
 from types import TracebackType
-from typing import TYPE_CHECKING, Callable, Iterator, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, Callable, Union
 from uuid import uuid4
+from weakref import WeakValueDictionary
 
 import pytest
 
 from filelock import BaseFileLock, FileLock, SoftFileLock, Timeout, UnixFileLock, WindowsFileLock
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from pytest_mock import MockerFixture
 
 
@@ -62,7 +65,7 @@ def make_ro(path: Path) -> Iterator[None]:
     path.chmod(path.stat().st_mode | write)
 
 
-@pytest.fixture()
+@pytest.fixture
 def tmp_path_ro(tmp_path: Path) -> Iterator[Path]:
     with make_ro(tmp_path):
         yield tmp_path
@@ -80,7 +83,7 @@ def test_ro_folder(lock_type: type[BaseFileLock], tmp_path_ro: Path) -> None:
         lock.acquire()
 
 
-@pytest.fixture()
+@pytest.fixture
 def tmp_file_ro(tmp_path: Path) -> Iterator[Path]:
     filename = tmp_path / "a"
     filename.write_text("")
@@ -109,15 +112,16 @@ WindowsOnly = pytest.mark.skipif(sys.platform != "win32", reason="Windows only")
         pytest.param(FileNotFoundError, "No such file or directory:", "", id="blank_filename"),
         pytest.param(ValueError, "embedded null (byte|character)", "\0", id="null_byte"),
         # Should be PermissionError on Windows
-        pytest.param(PermissionError, "Permission denied:", ".", id="current_directory")
-        if sys.platform == "win32"
-        else (
+        (
+            pytest.param(PermissionError, "Permission denied:", ".", id="current_directory")
+            if sys.platform == "win32"
             # Should be IsADirectoryError on MacOS and Linux
-            pytest.param(IsADirectoryError, "Is a directory", ".", id="current_directory")
-            if sys.platform in ["darwin", "linux"]
-            else
-            # Should be some type of OSError at least on other operating systems
-            pytest.param(OSError, None, ".", id="current_directory")
+            else (
+                pytest.param(IsADirectoryError, "Is a directory", ".", id="current_directory")
+                if sys.platform in {"darwin", "linux"}
+                # Should be some type of OSError at least on other operating systems
+                else pytest.param(OSError, None, ".", id="current_directory")
+            )
         ),
     ]
     + [pytest.param(OSError, "Invalid argument", i, id=f"invalid_{i}", marks=WindowsOnly) for i in '<>:"|?*\a']
@@ -199,7 +203,24 @@ def test_nested_forced_release(lock_type: type[BaseFileLock], tmp_path: Path) ->
     assert not lock.is_locked
 
 
-_ExcInfoType = Union[Tuple[Type[BaseException], BaseException, TracebackType], Tuple[None, None, None]]
+@pytest.mark.parametrize("lock_type", [FileLock, SoftFileLock])
+def test_nested_contruct(lock_type: type[BaseFileLock], tmp_path: Path) -> None:
+    # lock is re-entrant for a given file even if it is constructed multiple times
+    lock_path = tmp_path / "a"
+
+    with lock_type(str(lock_path), is_singleton=True, timeout=2) as lock_1:
+        assert lock_1.is_locked
+
+        with lock_type(str(lock_path), is_singleton=True, timeout=2) as lock_2:
+            assert lock_2 is lock_1
+            assert lock_2.is_locked
+
+        assert lock_1.is_locked
+
+    assert not lock_1.is_locked
+
+
+_ExcInfoType = Union[tuple[type[BaseException], BaseException, TracebackType], tuple[None, None, None]]
 
 
 class ExThread(threading.Thread):
@@ -285,7 +306,7 @@ def test_timeout(lock_type: type[BaseFileLock], tmp_path: Path) -> None:
     assert not lock_2.is_locked
 
     # try to acquire lock 2
-    with pytest.raises(Timeout, match="The file lock '.*' could not be acquired."):
+    with pytest.raises(Timeout, match=r"The file lock '.*' could not be acquired."):
         lock_2.acquire(timeout=0.1)
     assert not lock_2.is_locked
     assert lock_1.is_locked
@@ -301,22 +322,68 @@ def test_non_blocking(lock_type: type[BaseFileLock], tmp_path: Path) -> None:
     # raises Timeout error when the lock cannot be acquired
     lock_path = tmp_path / "a"
     lock_1, lock_2 = lock_type(str(lock_path)), lock_type(str(lock_path))
+    lock_3 = lock_type(str(lock_path), blocking=False)
+    lock_4 = lock_type(str(lock_path), timeout=0)
+    lock_5 = lock_type(str(lock_path), blocking=False, timeout=-1)
 
     # acquire lock 1
     lock_1.acquire()
     assert lock_1.is_locked
     assert not lock_2.is_locked
+    assert not lock_3.is_locked
+    assert not lock_4.is_locked
+    assert not lock_5.is_locked
 
     # try to acquire lock 2
-    with pytest.raises(Timeout, match="The file lock '.*' could not be acquired."):
+    with pytest.raises(Timeout, match=r"The file lock '.*' could not be acquired."):
         lock_2.acquire(blocking=False)
     assert not lock_2.is_locked
+    assert lock_1.is_locked
+
+    # try to acquire pre-parametrized `blocking=False` lock 3 with `acquire`
+    with pytest.raises(Timeout, match=r"The file lock '.*' could not be acquired."):
+        lock_3.acquire()
+    assert not lock_3.is_locked
+    assert lock_1.is_locked
+
+    # try to acquire pre-parametrized `blocking=False` lock 3 with context manager
+    with pytest.raises(Timeout, match=r"The file lock '.*' could not be acquired."), lock_3:
+        pass
+    assert not lock_3.is_locked
+    assert lock_1.is_locked
+
+    # try to acquire pre-parametrized `timeout=0` lock 4 with `acquire`
+    with pytest.raises(Timeout, match=r"The file lock '.*' could not be acquired."):
+        lock_4.acquire()
+    assert not lock_4.is_locked
+    assert lock_1.is_locked
+
+    # try to acquire pre-parametrized `timeout=0` lock 4 with context manager
+    with pytest.raises(Timeout, match=r"The file lock '.*' could not be acquired."), lock_4:
+        pass
+    assert not lock_4.is_locked
+    assert lock_1.is_locked
+
+    # blocking precedence over timeout
+    # try to acquire pre-parametrized `timeout=-1,blocking=False` lock 5 with `acquire`
+    with pytest.raises(Timeout, match=r"The file lock '.*' could not be acquired."):
+        lock_5.acquire()
+    assert not lock_5.is_locked
+    assert lock_1.is_locked
+
+    # try to acquire pre-parametrized `timeout=-1,blocking=False` lock 5 with context manager
+    with pytest.raises(Timeout, match=r"The file lock '.*' could not be acquired."), lock_5:
+        pass
+    assert not lock_5.is_locked
     assert lock_1.is_locked
 
     # release lock 1
     lock_1.release()
     assert not lock_1.is_locked
     assert not lock_2.is_locked
+    assert not lock_3.is_locked
+    assert not lock_4.is_locked
+    assert not lock_5.is_locked
 
 
 @pytest.mark.parametrize("lock_type", [FileLock, SoftFileLock])
@@ -332,7 +399,7 @@ def test_default_timeout(lock_type: type[BaseFileLock], tmp_path: Path) -> None:
     assert not lock_2.is_locked
 
     # try to acquire lock 2
-    with pytest.raises(Timeout, match="The file lock '.*' could not be acquired."):
+    with pytest.raises(Timeout, match=r"The file lock '.*' could not be acquired."):
         lock_2.acquire()
     assert not lock_2.is_locked
     assert lock_1.is_locked
@@ -340,7 +407,7 @@ def test_default_timeout(lock_type: type[BaseFileLock], tmp_path: Path) -> None:
     lock_2.timeout = 0
     assert lock_2.timeout == 0
 
-    with pytest.raises(Timeout, match="The file lock '.*' could not be acquired."):
+    with pytest.raises(Timeout, match=r"The file lock '.*' could not be acquired."):
         lock_2.acquire()
     assert not lock_2.is_locked
     assert lock_1.is_locked
@@ -394,7 +461,7 @@ def test_del(lock_type: type[BaseFileLock], tmp_path: Path) -> None:
     assert not lock_2.is_locked
 
     # try to acquire lock 2
-    with pytest.raises(Timeout, match="The file lock '.*' could not be acquired."):
+    with pytest.raises(Timeout, match=r"The file lock '.*' could not be acquired."):
         lock_2.acquire(timeout=0.1)
 
     # delete lock 1 and try to acquire lock 2 again
@@ -611,3 +678,139 @@ def test_lock_can_be_non_thread_local(
     assert lock.lock_counter == 2
 
     lock.release(force=True)
+
+
+def test_subclass_compatibility(tmp_path: Path) -> None:
+    class MyFileLock(FileLock):
+        def __init__(
+            self,
+            lock_file: str | os.PathLike[str],
+            timeout: float = -1,
+            mode: int = 0o644,
+            thread_local: bool = True,
+            my_param: int = 0,
+            **kwargs: dict[str, Any],  # noqa: ARG002
+        ) -> None:
+            super().__init__(lock_file, timeout, mode, thread_local, blocking=True, is_singleton=True)
+            self.my_param = my_param
+
+    lock_path = tmp_path / "a"
+    MyFileLock(str(lock_path), my_param=1)
+
+    class MySoftFileLock(SoftFileLock):
+        def __init__(
+            self,
+            lock_file: str | os.PathLike[str],
+            timeout: float = -1,
+            mode: int = 0o644,
+            thread_local: bool = True,
+            my_param: int = 0,
+            **kwargs: dict[str, Any],  # noqa: ARG002
+        ) -> None:
+            super().__init__(lock_file, timeout, mode, thread_local, blocking=True, is_singleton=True)
+            self.my_param = my_param
+
+    MySoftFileLock(str(lock_path), my_param=1)
+
+
+@pytest.mark.parametrize("lock_type", [FileLock, SoftFileLock])
+def test_singleton_and_non_singleton_locks_are_distinct(lock_type: type[BaseFileLock], tmp_path: Path) -> None:
+    lock_path = tmp_path / "a"
+    lock_1 = lock_type(str(lock_path), is_singleton=False)
+    assert lock_1.is_singleton is False
+
+    lock_2 = lock_type(str(lock_path), is_singleton=True)
+    assert lock_2.is_singleton is True
+    assert lock_2 is not lock_1
+
+
+@pytest.mark.parametrize("lock_type", [FileLock, SoftFileLock])
+def test_singleton_locks_are_the_same(lock_type: type[BaseFileLock], tmp_path: Path) -> None:
+    lock_path = tmp_path / "a"
+    lock_1 = lock_type(str(lock_path), is_singleton=True)
+
+    lock_2 = lock_type(str(lock_path), is_singleton=True)
+    assert lock_2 is lock_1
+
+
+@pytest.mark.parametrize("lock_type", [FileLock, SoftFileLock])
+def test_singleton_locks_are_distinct_per_lock_file(lock_type: type[BaseFileLock], tmp_path: Path) -> None:
+    lock_path_1 = tmp_path / "a"
+    lock_1 = lock_type(str(lock_path_1), is_singleton=True)
+
+    lock_path_2 = tmp_path / "b"
+    lock_2 = lock_type(str(lock_path_2), is_singleton=True)
+    assert lock_1 is not lock_2
+
+
+@pytest.mark.parametrize("lock_type", [FileLock, SoftFileLock])
+def test_singleton_locks_must_be_initialized_with_the_same_args(lock_type: type[BaseFileLock], tmp_path: Path) -> None:
+    lock_path = tmp_path / "a"
+    args: dict[str, Any] = {"timeout": -1, "mode": 0o644, "thread_local": True, "blocking": True}
+    alternate_args: dict[str, Any] = {"timeout": 10, "mode": 0, "thread_local": False, "blocking": False}
+
+    lock = lock_type(str(lock_path), is_singleton=True, **args)
+
+    for arg_name in args:
+        general_msg = "Singleton lock instances cannot be initialized with differing arguments"
+        altered_args = args.copy()
+        altered_args[arg_name] = alternate_args[arg_name]
+        with pytest.raises(ValueError, match=general_msg) as exc_info:
+            lock_type(str(lock_path), is_singleton=True, **altered_args)
+        exc_info.match(arg_name)  # ensure specific non-matching argument is included in exception text
+    del lock, exc_info
+
+
+@pytest.mark.skipif(hasattr(sys, "pypy_version_info"), reason="del() does not trigger GC in PyPy")
+@pytest.mark.parametrize("lock_type", [FileLock, SoftFileLock])
+def test_singleton_locks_are_deleted_when_no_external_references_exist(
+    lock_type: type[BaseFileLock],
+    tmp_path: Path,
+) -> None:
+    lock_path = tmp_path / "a"
+    lock = lock_type(str(lock_path), is_singleton=True)
+
+    assert lock_type._instances == {str(lock_path): lock}  # noqa: SLF001
+    del lock
+    assert lock_type._instances == {}  # noqa: SLF001
+
+
+@pytest.mark.skipif(hasattr(sys, "pypy_version_info"), reason="del() does not trigger GC in PyPy")
+@pytest.mark.parametrize("lock_type", [FileLock, SoftFileLock])
+def test_singleton_instance_tracking_is_unique_per_subclass(lock_type: type[BaseFileLock]) -> None:
+    class Lock1(lock_type):  # type: ignore[valid-type, misc]
+        pass
+
+    class Lock2(lock_type):  # type: ignore[valid-type, misc]
+        pass
+
+    assert isinstance(Lock1._instances, WeakValueDictionary)  # noqa: SLF001
+    assert isinstance(Lock2._instances, WeakValueDictionary)  # noqa: SLF001
+    assert Lock1._instances is not Lock2._instances  # noqa: SLF001
+
+
+def test_singleton_locks_when_inheriting_init_is_called_once(tmp_path: Path) -> None:
+    init_calls = 0
+
+    class MyFileLock(FileLock):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: ANN401
+            super().__init__(*args, **kwargs)
+            nonlocal init_calls
+            init_calls += 1
+
+    lock_path = tmp_path / "a"
+    lock1 = MyFileLock(str(lock_path), is_singleton=True)
+    lock2 = MyFileLock(str(lock_path), is_singleton=True)
+
+    assert lock1 is lock2
+    assert init_calls == 1
+
+
+def test_file_lock_positional_argument(tmp_path: Path) -> None:
+    class FilePathLock(FileLock):
+        def __init__(self, file_path: str) -> None:
+            super().__init__(file_path + ".lock")
+
+    lock_path = tmp_path / "a"
+    lock = FilePathLock(str(lock_path))
+    assert lock.lock_file == str(lock_path) + ".lock"

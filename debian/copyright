@@ -1,13 +1,13 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: filelock
-Source: https://github.com/tox-dev/py-filelock
+Source: https://github.com/tox-dev/filelock
 
 Files: *
 Copyright: 2014-2022 Benedikt Schmitt <benedikt@benediktschmitt.de>
 License: public-domain
 
 Files: debian/*
-Copyright: 2016-2023 Sascha Steinbiss <satta@debian.org>
+Copyright: 2016-2025 Sascha Steinbiss <satta@debian.org>
 License: public-domain
 
 License: public-domain
